@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:restaurantsoftware/component/calendar.dart';
 import 'package:restaurantsoftware/employee/routeEmployee.dart';
 import 'package:restaurantsoftware/loginPage.dart';
+import 'package:restaurantsoftware/manager/signup_screen.dart';
 
 
 void main() {
@@ -17,7 +18,7 @@ class _MyAppState extends State<MyApp> {
     @override
   Widget build(BuildContext context){
       return MaterialApp(
-        home: LoginPage(),
+        home: Signup(),
       );
     }
 }
