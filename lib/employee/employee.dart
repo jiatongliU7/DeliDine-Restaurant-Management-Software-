@@ -7,7 +7,7 @@ class Employee{
   String email;
   List availability;
   Map schedule;
-  Map timesheet; //Key: clock-in-time, value: clock-out-time
+  Map timesheet; // key: clock-in-time, value: clock_out_time
   DateTime? currentClockIn;
   DateTime? currentClockOut;
   String? role;
@@ -16,8 +16,8 @@ class Employee{
 
   Employee(
   {
-  required this.name,
-  required this.lastName,
+    required this.name,
+    required this.lastName,
     required this.email,
     required this.role,
     required this.uid,
@@ -31,46 +31,50 @@ class Employee{
   void clockIn(){
     currentClockIn = DateTime.now();
   }
-  void clockOut() {
+
+  void clockOut(){
     DateTime currentTime = DateTime.now();
 
-    if(currentClockIn != null &&
-    currentClockOut == null &&
-    currentTime.isAfter(currentClockIn!)) {
+    if( currentClockIn != null && currentClockOut == null
+        && currentTime.isAfter(currentClockIn!)){
       String currentClockInString = currentClockIn!.toIso8601String();
       timesheet[currentClockIn] = Timestamp.fromDate(currentTime);
     }
     else if(currentClockIn == null){
-      print('Error, User is not clocked in!');
+      print('Error, User is not clocked in !');
     }
     else {
       print('Error: Invalid clock-out time. It should be after clock-in time');
     }
   }
+
   void setAvailability(List newAvailability){
     availability = newAvailability;
   }
-  //remember to update
+
   void requestTimeOff(DateTime start, DateTime end){
-    print('Time off request sent for $start to $end');
+    print('Rime off request sent for $start to $end');
   }
-  Map<String, dynamic> toMap() {
-    return {
-      'name' : name,
-      'lastname' : lastName,
-      'phoneNumber' : phoneNumber,
+
+  Map<String, dynamic> toMap(){
+    return{
+      'name':name,
+      'lastname':lastName,
+      'phoneNumber':phoneNumber,
       'email': email,
-      'Availability' : availability,
-      'timesheet': timesheet.map((key, value) =>
+      'Availability': availability,
+      'timesheet': timesheet.map((key,value) =>
           MapEntry(key.toIso8601String(), value.toIso8601String())),
-      'role': role,
-      'TimeOff' : timeOff,
-      'schedule' : schedule
+      'role':role,
+      'TimeOff':timeOff,
+      'schedule':schedule
     };
   }
+
   @override
   String toString(){
-    return "User $name $lastName, Phone: $phoneNumber, Email: $email";
+    return "User $name $lastName, Phone:$phoneNumber, Email: $email";
   }
+
 
 }

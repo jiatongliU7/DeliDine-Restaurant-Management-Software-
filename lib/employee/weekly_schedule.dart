@@ -28,7 +28,7 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
   void _getEmployeeData() {
     employeeList = [];
     getUsersInfo().then((value) => setState(
-        () {
+            () {
           value!.forEach((uid, value) {
             if(value['role'] != 'Manager'){
               debugPrint(value.toString());
@@ -60,9 +60,9 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
 
         Meeting meeting = Meeting(
           '${employee.name} ${employee.lastName}',
-        startTime, endTime,
-        Colors.green,
-        false,
+          startTime, endTime,
+          Colors.green,
+          false,
         );
         meetings.add(meeting);
       });
@@ -81,33 +81,33 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
                 labelText: 'Start Time',
                 initialDateTime: startTime,
                 onSelect: (date) {
-                    if(date!.isAfter(endTime)){
-                      endTime = date.add(const Duration(minutes: 1));
-                    }
-                    startTime = date;
+                  if(date!.isAfter(endTime)){
+                    endTime = date.add(const Duration(minutes: 1));
+                  }
+                  startTime = date;
 
-                    if(mounted) {
-                      setState(() {
+                  if(mounted) {
+                    setState(() {
 
-                      });
-                    }
+                    });
+                  }
                 },
                 type: DateTimeSelectionType.time,
               ),
               DateTimeSelectorFormField(
-                  labelText: 'End Time',
-                  initialDateTime: endTime,
-                  onSelect: (date){
-                    if(date!.isBefore(startTime)) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('End time is less than start time.')));
-                    }
-                    else{
-                      endTime = date;
-                    }
-                  },
-                  type: DateTimeSelectionType.time,
-                  ),
+                labelText: 'End Time',
+                initialDateTime: endTime,
+                onSelect: (date){
+                  if(date!.isBefore(startTime)) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('End time is less than start time.')));
+                  }
+                  else{
+                    endTime = date;
+                  }
+                },
+                type: DateTimeSelectionType.time,
+              ),
             ],
           ),
         ),
@@ -145,55 +145,55 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.only(top: 15.0),
-        child: SfCalendar(
-          allowAppointmentResize: true,
-          view: CalendarView.week,
-          firstDayOfWeek: 2,
-          todayHighlightColor: Colors.red,
-          cellBorderColor: Colors.blue,
-          dataSource: MeetingDataSource(meetings),
-          selectionDecoration: BoxDecoration(
-            color: Colors.transparent,
-            border: Border.all(color: Colors.red, width: 2),
-            borderRadius: const BorderRadius.all(Radius.circular(4)),
-            shape: BoxShape.rectangle,
-          ),
-          onTap: (CalendarTapDetails details) {
-            if(details.targetElement == CalendarElement.calendarCell){
-              DateTime tappedTime = details.date!;
-              print(tappedTime);
-            } else if(details.targetElement == CalendarElement.appointment){
-              DateTime tappedTime = details.date!;
-              print(tappedTime);
+          padding: const EdgeInsets.only(top: 15.0),
+          child: SfCalendar(
+              allowAppointmentResize: true,
+              view: CalendarView.week,
+              firstDayOfWeek: 2,
+              todayHighlightColor: Colors.red,
+              cellBorderColor: Colors.blue,
+              dataSource: MeetingDataSource(meetings),
+              selectionDecoration: BoxDecoration(
+                color: Colors.transparent,
+                border: Border.all(color: Colors.red, width: 2),
+                borderRadius: const BorderRadius.all(Radius.circular(4)),
+                shape: BoxShape.rectangle,
+              ),
+              onTap: (CalendarTapDetails details) {
+                if (details.targetElement == CalendarElement.calendarCell) {
+                  DateTime tappedTime = details.date!;
+                  print(tappedTime);
+                } else
+                if (details.targetElement == CalendarElement.appointment) {
+                  DateTime tappedTime = details.date!;
+                  print(tappedTime);
 
-              Meeting meeting = details.appointments![0];
+                  Meeting meeting = details.appointments![0];
 
-              _showUpdateAvailableTimeDialog(context, meeting);
-              Future.delayed(const Duration(milliseconds: 100), () {
-                setState(() {
+                  _showUpdateAvailableTimeDialog(context, meeting);
+                  Future.delayed(const Duration(milliseconds: 100), () {
+                    setState(() {});
+                  });
+                }
+              }
 
-                });
-              });
-            }
-          },
-        )
+          )
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
+        onPressed: (){
           Navigator.push(context,
           CupertinoPageRoute(builder: (context) => AddScheduleForm()))
-              .then((value) {
+              .then((value){
                 _getEmployeeData();
                 Future.delayed(const Duration(milliseconds: 100), () {
                   setState(() {
-
                   });
                 });
-          });
-        },
-        child: Icon(Icons.add_box_rounded)
-      ),
+                });
+    },
+    child:Icon(Icons.add_box_rounded
+            ),
+    ),
     );
   }
 }
