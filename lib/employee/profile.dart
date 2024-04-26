@@ -1,62 +1,73 @@
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:restaurantsoftware/employee/signupPage.dart';
-import 'package:restaurantsoftware/employee/weekly_schedule.dart';
-import '/firebase/authentication.dart';
-//import '/manager/emergencyContactScreen.dart';
-//import '/manager/weekly_schedule.dart';
-//import 'signup_screen.dart';
+//import 'package:restaurantsoftware/employee/availabilityScreen.dart';
 
-class RouteManagerPage extends StatefulWidget {
-  const RouteManagerPage({Key? key}) : super(key: key);
+import '../firebase/db.dart';
+//import 'contact.dart';
+import 'employee.dart';
+
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({Key? key, required this.employee}) : super(key: key);
+  final Employee employee;
 
   @override
-  State<RouteManagerPage> createState() => _RouteManagerPageState();
+  State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _RouteManagerPageState extends State<RouteManagerPage> {
+class _ProfilePageState extends State<ProfilePage> {
+  @override
+  initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text('Profile'),
         automaticallyImplyLeading: false,
         leading: Container(),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.exit_to_app),
-            onPressed: () {
-              AuthenticationHelper()
-                  .signOut()
-                  .then((value) => Navigator.of(context).pop());
-            },
-          ),
-        ],
       ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.only(top: 50.0),
           child: Column(
             children: <Widget>[
-              SizedBox(
-                height: 54,
-                width: width * 0.75,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const WeeklySchedulePage()));
-                  },
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF276B27),
-                      shape: const RoundedRectangleBorder(
-                          borderRadius:
-                          BorderRadius.all(Radius.circular(24.0)))),
-                  child: const Text(
-                    'Weekly Schedule',
-                    style: TextStyle(fontSize: 24, color: Colors.white),
+              Text(widget.employee.name,
+                  style: const TextStyle(
+                      fontSize: 30, fontWeight: FontWeight.bold)),
+              Text(widget.employee.lastName,
+                  style: const TextStyle(
+                      fontSize: 30, fontWeight: FontWeight.bold)),
+              Text('Work as ${widget.employee.role}',
+                  style: const TextStyle(
+                      fontSize: 25, fontStyle: FontStyle.italic)),
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: SizedBox(
+                  height: 54,
+                  width: width * 0.75,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Navigator.push(
+                      //     context,
+                      //     MaterialPageRoute(
+                      //         builder: (context) => AvailabilityPage(
+                      //           isEdited: true,
+                      //           employee: widget.employee,
+                      //         )));
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF276B27),
+                        shape: const RoundedRectangleBorder(
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(24.0)))),
+                    child: const Text(
+                      'Availability',
+                      style: TextStyle(fontSize: 24, color: Colors.white),
+                    ),
                   ),
                 ),
               ),
@@ -70,8 +81,9 @@ class _RouteManagerPageState extends State<RouteManagerPage> {
                       // Navigator.push(
                       //     context,
                       //     MaterialPageRoute(
-                      //         builder: (context) =>
-                      //         const EmergencyContactPage()));
+                      //         builder: (context) => ContactPage(
+                      //           employee: widget.employee,
+                      //         )));
                     },
                     style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF276B27),
@@ -79,31 +91,7 @@ class _RouteManagerPageState extends State<RouteManagerPage> {
                             borderRadius:
                             BorderRadius.all(Radius.circular(24.0)))),
                     child: const Text(
-                      'Emergency Contact',
-                      style: TextStyle(fontSize: 24, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20.0),
-                child: SizedBox(
-                  height: 54,
-                  width: width * 0.75,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const Signup()));
-                    },
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF276B27),
-                        shape: const RoundedRectangleBorder(
-                            borderRadius:
-                            BorderRadius.all(Radius.circular(24.0)))),
-                    child: const Text(
-                      'Add User',
+                      'Contact',
                       style: TextStyle(fontSize: 24, color: Colors.white),
                     ),
                   ),

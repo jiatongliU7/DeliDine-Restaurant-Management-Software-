@@ -26,21 +26,54 @@ class _SplashScreenState extends State<SplashScreen> {
   }
   @override
   Widget build(BuildContext context) {
-    return const SafeArea(child: Scaffold(
-      backgroundColor: const Color(0xFF68A268),
-      body: Stack(
-        alignment: Alignment.center,
-        children: [
+    return SafeArea(
+        child: Scaffold(
+          backgroundColor: const Color(0xFF68A268),
+          body: Stack(
+              alignment: Alignment.center,
+              children: [
           Padding(
             padding: const EdgeInsets.only(bottom: 40),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-
+                  const Spacer(),
+                const Text(
+                  'Restaurant',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 40,
+                    color: Colors.white
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  height: 100,
+                  width: 200,
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(image: AssetImage('assets/logo.png'),
+                       fit: BoxFit.cover
+                    )
+                  ),
+                ),
+                const Spacer(),
+                const Column(
+                  children: [
+                    Text("version",
+                    style: TextStyle(color: Colors.white)
+                    ),
+                    Text('1.0.0',
+                        style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold)
+                    )
+                  ],
+                )
               ],
             ),
-          )
+          ),
+                Container(
+                  height: 630,
+                )
         ]
       ),
     ));

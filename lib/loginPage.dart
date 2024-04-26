@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'employee/routeEmployee.dart';
+import 'package:restaurantsoftware/employee/routeEmployee.dart';
+import 'package:restaurantsoftware/manager/route_manager.dart';
 import 'firebase/db.dart';
-import 'manager/route_manager.dart';
 import 'firebase/authentication.dart';
 
 class LoginPage extends StatelessWidget {
@@ -31,7 +31,7 @@ class LoginPage extends StatelessWidget {
                 width: 110,
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                      image: AssetImage('assets/logo.png'), fit: BoxFit.cover),
+                      image: AssetImage('assets/images/logo.png'), fit: BoxFit.cover),
                 ),
               ),
             )
@@ -156,15 +156,15 @@ class _LoginFormState extends State<LoginForm> {
                         email.text = '';
                         password.text = '';
                         if (data!['role'] == 'Manager') {
-                          // Navigator.push(
-                          //     context,
-                          //     MaterialPageRoute(
-                          //         builder: (context) => RouteManagerPage()));
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => RouteManagerPage()));
                         } else {
-                          // Navigator.push(
-                          //     context,
-                          //     MaterialPageRoute(
-                          //         builder: (context) => RouteEmployeePage()));
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => RouteEmployeePage()));
                         }
                       });
                     } else {
