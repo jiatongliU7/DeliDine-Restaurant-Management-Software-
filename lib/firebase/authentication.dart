@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 
 class AuthenticationHelper {
@@ -9,14 +10,14 @@ class AuthenticationHelper {
 
   //creates a new user with email and password
   Future signUp({required String email, required String password}) async {
-    //print(uid);
+    print(uid);
     try {
       await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      // DatabaseReference mDatabase = FirebaseDatabase.instance.ref();
-      //  mDatabase.child("users").child(user.uid).set("hello world");
+      DatabaseReference mDatabase = FirebaseDatabase.instance.ref();
+      mDatabase.child("users").child(user.uid).set("hello world");
       return true;
     } on FirebaseAuthException catch (e) {
       return e.message;
@@ -32,9 +33,9 @@ class AuthenticationHelper {
   Future signIn({required String email, required String password}) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
-      // print(uid);
-      // print(email);
-      // print(password);
+       print(uid);
+       print(email);
+       print(password);
       return null;
     } on FirebaseAuthException catch (e) {
       return e.message;

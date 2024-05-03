@@ -94,6 +94,7 @@ class _LoginFormState extends State<LoginForm> {
               ),
             ),
             validator: (value) {
+
               if (value!.isEmpty) {
                 return 'Please enter some text';
               }

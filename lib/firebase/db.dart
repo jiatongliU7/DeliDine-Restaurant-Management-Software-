@@ -13,7 +13,7 @@ Future<Map?> getUsersInfo() async {
       .then((DocumentSnapshot documentSnapshot) {
     if (documentSnapshot.exists) {
       data = documentSnapshot.data() as Map;
-      // print('Document data: ${data}');
+      print('Document data: ${data}');
     } else {
       print('Document does not exist on the database');
       return null;
