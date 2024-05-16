@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:restaurantsoftware/employee/employee.dart';
-
 import '../firebase/authentication.dart';
 import '../firebase/db.dart';
 
@@ -10,44 +9,12 @@ class Signup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        automaticallyImplyLeading: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        backgroundColor: const Color(0xFF68A268),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(50.0),
-            bottomRight: Radius.circular(50.0),
-          ),
-        ),
-        toolbarHeight: 100,
-        flexibleSpace: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Center(
-              child: Container(
-                height: 85,
-                width: 110,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                      image: AssetImage('assets/logo.png'), fit: BoxFit.cover),
-                ),
-              ),
-            )
-          ],
-        ),
-      ),
       body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
             const SizedBox(height: 50),
-            const Text('Restaurant',
+            const Text('Register a New Employee',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
             Padding(
@@ -73,6 +40,7 @@ class _SignupFormState extends State<SignupForm> {
   TextEditingController email = TextEditingController();
   TextEditingController name = TextEditingController();
   TextEditingController lastName = TextEditingController();
+  TextEditingController phoneNumber = TextEditingController(); // New phone number controller
   TextEditingController password = TextEditingController();
   String? selectedRole; // Variable to hold the selected role
   List<String> roles = [
@@ -89,8 +57,6 @@ class _SignupFormState extends State<SignupForm> {
       content: Text(message),
     );
 
-    // Find the ScaffoldMessenger in the widget tree
-    // and use it to show a SnackBar.
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
@@ -120,7 +86,7 @@ class _SignupFormState extends State<SignupForm> {
                 }
                 return null;
               },
-              keyboardType: TextInputType.emailAddress,
+              keyboardType: TextInputType.text,
             ),
             space,
             TextFormField(
@@ -135,12 +101,24 @@ class _SignupFormState extends State<SignupForm> {
                 }
                 return null;
               },
-              keyboardType: TextInputType.emailAddress,
+              keyboardType: TextInputType.text,
             ),
-
             space,
-
-            // email
+            TextFormField(
+              controller: phoneNumber, // Phone number field
+              decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.phone),
+                  labelText: 'Phone Number',
+                  border: border),
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return 'Please enter a phone number';
+                }
+                return null;
+              },
+              keyboardType: TextInputType.phone,
+            ),
+            space,
             TextFormField(
               controller: email,
               decoration: InputDecoration(
@@ -155,10 +133,7 @@ class _SignupFormState extends State<SignupForm> {
               },
               keyboardType: TextInputType.emailAddress,
             ),
-
             space,
-
-            // password
             TextFormField(
               controller: password,
               decoration: InputDecoration(
@@ -185,7 +160,6 @@ class _SignupFormState extends State<SignupForm> {
               },
             ),
             space,
-            // confirm passwords
             TextFormField(
               decoration: InputDecoration(
                 labelText: 'Confirm Password',
@@ -195,17 +169,12 @@ class _SignupFormState extends State<SignupForm> {
               obscureText: true,
               validator: (value) {
                 if (value != password.text) {
-                  return 'password not match';
+                  return 'Password does not match';
                 }
                 return null;
               },
             ),
             space,
-            // name
-
-            const SizedBox(
-              height: 10,
-            ),
             DropdownButtonFormField(
               decoration: InputDecoration(
                 labelText: 'Select Role',
@@ -227,9 +196,7 @@ class _SignupFormState extends State<SignupForm> {
                 );
               }).toList(),
             ),
-
             space,
-            // signUP button
             SizedBox(
               height: 50,
               width: double.infinity,
@@ -240,8 +207,13 @@ class _SignupFormState extends State<SignupForm> {
 
                     AuthenticationHelper()
                         .signUp(
-                        email: email.text.trim()!,
-                        password: password.text.trim()!)
+                        email: email.text.trim(),
+                        password: password.text.trim(),
+                        name: name.text.trim(),
+                        lastName: lastName.text.trim(),
+                        role: selectedRole.toString(),
+                        phoneNumber: phoneNumber.text.trim() // Pass phone number
+                    )
                         .then((result) {
                       try {
                         if (result) {
@@ -254,11 +226,13 @@ class _SignupFormState extends State<SignupForm> {
                                 lastName: lastName.text.trim(),
                                 email: email.text.trim(),
                                 role: selectedRole,
-                                uid: uid);
+                                uid: uid,
+                                phoneNumber: phoneNumber.text.trim() // Set phone number
+                            );
                             editUserInfo(employee.toMap());
                             reset_info();
                           }
-                          snapBarBuilder('user was been added');
+                          snapBarBuilder('User has been added');
                         }
                       } catch (e) {
                         snapBarBuilder(result);
@@ -271,7 +245,7 @@ class _SignupFormState extends State<SignupForm> {
                     shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(24.0)))),
                 child: const Text(
-                  'Add user',
+                  'Add User',
                   style: TextStyle(color: Colors.white, fontSize: 20),
                 ),
               ),
@@ -288,7 +262,9 @@ class _SignupFormState extends State<SignupForm> {
   void reset_info() {
     name.text = '';
     lastName.text = '';
+    phoneNumber.text = ''; // Reset phone number
     email.text = '';
     selectedRole = null;
+    password.text = '';
   }
 }

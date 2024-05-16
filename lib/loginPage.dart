@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:restaurantsoftware/employee/routeEmployee.dart';
+import 'package:restaurantsoftware/manager/manager_register_page.dart';
 import 'package:restaurantsoftware/manager/route_manager.dart';
-import 'firebase/db.dart';
 import 'firebase/authentication.dart';
 
 class LoginPage extends StatelessWidget {
@@ -31,7 +31,9 @@ class LoginPage extends StatelessWidget {
                 width: 110,
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                      image: AssetImage('assets/images/logo.png'), fit: BoxFit.cover),
+                    image: AssetImage('assets/images/logo.png'),
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             )
@@ -41,17 +43,31 @@ class LoginPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(8.0),
         children: <Widget>[
-          const SizedBox(
-            height: 50,
+          const SizedBox(height: 50),
+          const Text(
+            'Restaurant',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
           ),
-          const Text('Restaurant',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: LoginForm(),
           ),
           const SizedBox(height: 20),
+          Center(
+            child: TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => RegisterManagerPage()),
+                );
+              },
+              child: Text(
+                'Register as Manager',
+                style: TextStyle(color: Colors.blue, fontSize: 16),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -72,10 +88,13 @@ class _LoginFormState extends State<LoginForm> {
   TextEditingController password = TextEditingController();
 
   bool _obscureText = true;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
-    return Form(
+    return _isLoading
+        ? Center(child: CircularProgressIndicator())
+        : Form(
       key: _formKey,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -83,39 +102,30 @@ class _LoginFormState extends State<LoginForm> {
           // email
           TextFormField(
             controller: email,
-            // initialValue: 'Input text',
             decoration: const InputDecoration(
               prefixIcon: Icon(Icons.email_outlined),
               labelText: 'Email',
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(100.0),
-                ),
+                borderRadius: BorderRadius.all(Radius.circular(100.0)),
               ),
             ),
             validator: (value) {
-
               if (value!.isEmpty) {
                 return 'Please enter some text';
               }
               return null;
             },
           ),
-          const SizedBox(
-            height: 20,
-          ),
+          const SizedBox(height: 20),
 
           // password
           TextFormField(
             controller: password,
-            // initialValue: 'Input text',
             decoration: InputDecoration(
               labelText: 'Password',
               prefixIcon: const Icon(Icons.lock_outline),
               border: const OutlineInputBorder(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(100.0),
-                ),
+                borderRadius: BorderRadius.all(Radius.circular(100.0)),
               ),
               suffixIcon: GestureDetector(
                 onTap: () {
@@ -129,7 +139,6 @@ class _LoginFormState extends State<LoginForm> {
               ),
             ),
             obscureText: _obscureText,
-
             validator: (value) {
               if (value!.isEmpty) {
                 return 'Please enter some text';
@@ -137,7 +146,6 @@ class _LoginFormState extends State<LoginForm> {
               return null;
             },
           ),
-
           const SizedBox(height: 30),
 
           SizedBox(
@@ -146,28 +154,37 @@ class _LoginFormState extends State<LoginForm> {
             child: ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
+                  setState(() {
+                    _isLoading = true;
+                  });
                   AuthenticationHelper()
                       .signIn(
-                      email: email.text.trim(),
-                      password: password.text.trim())
-                      .then((result) {
+                    email: email.text.trim(),
+                    password: password.text.trim(),
+                  )
+                      .then((result) async {
+                    setState(() {
+                      _isLoading = false;
+                    });
                     if (result == null) {
-                      getMyInfo().then((data) {
-                        email.text = '';
-                        password.text = '';
-                        if (data!['role'] == 'Manager') {
-                          Navigator.push(
+                      String? role = await AuthenticationHelper().getUserRole(AuthenticationHelper().uid);
+                      if (role != null) {
+                        if (role == 'Manager') {
+                          Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => RouteManagerPage()));
                         } else {
-                          Navigator.push(
+                          Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => RouteEmployeePage()));
                         }
-                      });
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('Role not found'),
+                        ));
+                      }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text(
@@ -180,9 +197,11 @@ class _LoginFormState extends State<LoginForm> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF276B27),
-                  shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(24.0)))),
+                backgroundColor: const Color(0xFF276B27),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(24.0)),
+                ),
+              ),
               child: const Text(
                 'Login',
                 style: TextStyle(fontSize: 24, color: Colors.white),

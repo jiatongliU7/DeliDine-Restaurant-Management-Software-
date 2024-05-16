@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../date_time_selector.dart';
 import '../employee/employee.dart';
@@ -19,10 +20,9 @@ class AddScheduleForm extends StatefulWidget {
 class _AddScheduleFormState extends State<AddScheduleForm> {
   late DateTime _date;
   DateTime? _startTime;
-  DateTime? _endTime; // year, month, day, hour,Minutes
+  DateTime? _endTime;
   Color _color = Colors.blue;
   final _form = GlobalKey<FormState>();
-  Map data = {};
   List<Employee> scheduleEmployeeList = [];
 
   List<String> items = [];
@@ -50,53 +50,43 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
     _setDefaults();
   }
 
-  void getEmployeeData() {
-    getUsersInfo().then((value) =>
-        setState(
-              () {
-            data = value!;
-            data.forEach((uid, value) {
-              if (value['role'] != 'Manager') {
-                debugPrint(value.toString());
-                duplicateItems.add(value['name'] + ' ' + value['lastName']);
-                duplicateEmployeeInfo.add(
-                  Employee(
-                      name: value['name'],
-                      uid: uid,
-                      role: value['role'],
-                      email: value['email'],
-                      lastName: value['lastName'],
-                      availability: value['Availability'],
-                      phoneNumber: value['phoneNumber'],
-                      timeOff: value['Time Off'],
-                      timesheet: value['timesheet'],
-                      schedule: value['schedule']
+  void getEmployeeData() async {
+    try {
+      var snapshot = await FirebaseFirestore.instance.collection('users').get();
+      var data = snapshot.docs;
 
-                  ),
-                );
-              }
-            });
-            setState(() {
-              items = duplicateItems;
-              employeeInfo = duplicateEmployeeInfo;
-              isLoading = false;
-              print(employeeInfo);
-            });
-          },
-        ));
+      setState(() {
+        data.forEach((doc) {
+          var value = doc.data();
+          if (value['role'] != 'Manager') {
+            debugPrint(value.toString());
+            duplicateItems.add(value['name'] + ' ' + value['lastName']);
+            duplicateEmployeeInfo.add(Employee.fromMap(value, doc.id));
+          }
+        });
+        items = duplicateItems;
+        employeeInfo = duplicateEmployeeInfo;
+        isLoading = false;
+        debugPrint('Employee Info Loaded: ${employeeInfo.length}');
+      });
+    } catch (e) {
+      debugPrint('Error fetching employee data: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   void filterSearchResults(String query) {
-    items = [];
     setState(() {
+      items = [];
+      employeeInfo = [];
       for (int i = 0; i < duplicateItems.length; i++) {
         if (duplicateItems[i].toLowerCase().contains(query.toLowerCase())) {
           int indexWeekDay = weekDays.indexOf(selectedDay) - 1;
-          // print(indexWeekDay);
-          // print(duplicateEmployeeInfo[i].availability[indexWeekDay]);
           if (selectedDay == 'All' ||
-              duplicateEmployeeInfo[i].availability[indexWeekDay]
-              ['selectedDay']) {
+              duplicateEmployeeInfo[i]
+                  .availability[indexWeekDay]['selectedDay']) {
             items.add(duplicateItems[i]);
             employeeInfo.add(duplicateEmployeeInfo[i]);
           }
@@ -108,17 +98,14 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
   String getScheduleEmployees() {
     String scheduleEmployees = '';
     for (Employee employee in scheduleEmployeeList) {
-      scheduleEmployees += '${employee.name}${employee.lastName}, ';
+      scheduleEmployees += '${employee.name} ${employee.lastName}, ';
     }
     return scheduleEmployees;
   }
 
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery
-        .of(context)
-        .size
-        .height;
+    double height = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Set Schedule'),
@@ -190,14 +177,13 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
                               title: Text('${items[index]}',
                                   style: const TextStyle(fontSize: 20)),
                               subtitle: Text(
-                                  'Work as: ${employeeInfo[index].role}',
+                                  'Works as: ${employeeInfo[index].role}',
                                   style: const TextStyle(fontSize: 18)),
                               trailing: IconButton(
                                 icon: scheduleEmployeeList
                                     .contains(employeeInfo[index])
                                     ? const Icon(Icons.remove,
-                                    color: Colors
-                                        .red) // Display a minus icon if the employee is in the list
+                                    color: Colors.red) // Display a minus icon if the employee is in the list
                                     : const Icon(Icons.add, color: Colors.green),
                                 // Display a plus icon if the employee is not in the list
                                 onPressed: () {
@@ -295,7 +281,7 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
               Row(
                 children: [
                   const Text(
-                    "schedule Color: ",
+                    "Schedule Color: ",
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 17,
@@ -322,30 +308,40 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
     );
   }
 
-  _addSchedule() {
+  _addSchedule() async {
     for (Employee employee in scheduleEmployeeList) {
-      Map schedule = employee.schedule;
-      Map event = {};
+      Map<String, dynamic> schedule = employee.schedule;
+      Map<String, dynamic> event = {};
       String date = _date.toLocal().toString().split(' ')[0];
-      event['startTime'] = _startTime;
-      event['endTime'] = _endTime;
+      event['startTime'] = Timestamp.fromDate(_startTime!);
+      event['endTime'] = Timestamp.fromDate(_endTime!);
       schedule[date] = event;
       employee.schedule = schedule;
-      addEvents({'schedule': schedule}, employee.uid);
+
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(employee.uid)
+            .update({'schedule': schedule});
+      } catch (e) {
+        debugPrint('Error saving schedule: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving schedule: $e'),
+          ),
+        );
+        return;
+      }
     }
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Schedule was saved.'),
       ),
     );
+    Navigator.of(context).pop();
   }
 
   void _setDefaults() {
-    // Initialize form fields with default values or values from an existing schedule
-    // You can set _startDate, _startTime, _endTime, _color,
-    // _titleController, and _descriptionController based on your requirements.
-
-    // Example: Setting default values for start and end date/time
     _date = DateTime.now();
     _startTime = DateTime(
       _date.year,
@@ -353,7 +349,7 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
       _date.day,
       9,
       0,
-    ); // year, month, day, hour,Minutes
+    );
     _endTime = DateTime(
       _date.year,
       _date.month,
@@ -361,21 +357,17 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
       18,
       0,
     );
-
-    // Example: Setting default color
     _color = Colors.green;
   }
 
   void _displayColorPicker() {
-    // Display a color picker dialog and update _color
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        Color selectedColor = _color; // Initialize with current color
+        Color selectedColor = _color;
 
         return AlertDialog(
-          title: const Text('Select schedule Color'),
+          title: const Text('Select Schedule Color'),
           content: SingleChildScrollView(
             child: ColorPicker(
               pickerColor: selectedColor,
@@ -384,8 +376,8 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
                   selectedColor = color;
                 });
               },
-              showLabel: true, // Show color label
-              pickerAreaHeightPercent: 0.8, // Adjust the picker area height
+              showLabel: true,
+              pickerAreaHeightPercent: 0.8,
             ),
           ),
           actions: <Widget>[
@@ -399,7 +391,7 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
               child: const Text('Select'),
               onPressed: () {
                 setState(() {
-                  _color = selectedColor; // Update the selected color
+                  _color = selectedColor;
                 });
                 Navigator.of(context).pop();
               },

@@ -1,51 +1,69 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:restaurantsoftware/employee/employee.dart';
 
 
 class AuthenticationHelper {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   get user => _auth.currentUser;
-  get uid => user.uid;
+  get uid => user?.uid;
 
-  //creates a new user with email and password
-  Future signUp({required String email, required String password}) async {
-    print(uid);
+  // Creates a new user with email and password
+  Future signUp({
+    required String email,
+    required String password,
+    required String name,
+    required String lastName,
+    required String role,
+    required String phoneNumber
+  }) async {
     try {
-      await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      DatabaseReference mDatabase = FirebaseDatabase.instance.ref();
-      mDatabase.child("users").child(user.uid).set("hello world");
+
+      Employee employee = Employee(
+        name: name,
+        lastName: lastName,
+        email: email,
+        role: role,
+        uid: userCredential.user?.uid ?? '',
+      );
+
+      await employee.saveToFirestore();
+
+      // Explicitly sign in the user after sign-up
+      await signIn(email: email, password: password);
+
       return true;
     } on FirebaseAuthException catch (e) {
       return e.message;
     }
-
   }
 
-  String getUID() {
-    return user.uid;
-  }
-
-  //SIGN IN METHOD
+  // SIGN IN METHOD
   Future signIn({required String email, required String password}) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
-       print(uid);
-       print(email);
-       print(password);
       return null;
     } on FirebaseAuthException catch (e) {
       return e.message;
     }
   }
 
-  //SIGN OUT METHOD
+  // SIGN OUT METHOD
   Future signOut() async {
     await _auth.signOut();
+  }
 
-    print('signout');
+  // Get User Role
+  Future<String?> getUserRole(String uid) async {
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    if (userDoc.exists) {
+      return userDoc['role'];
+    }
+    return null;
   }
 }

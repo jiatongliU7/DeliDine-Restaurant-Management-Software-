@@ -11,9 +11,6 @@ class TimesheetPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Timesheet'),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: _buildTimesheetEntries(),

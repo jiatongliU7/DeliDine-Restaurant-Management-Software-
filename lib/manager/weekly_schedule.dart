@@ -20,127 +20,139 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
   List<Employee> employeeList = [];
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _getEmployeeData();
   }
 
-  void _getEmployeeData() {
-    employeeList = [];
-    getUsersInfo().then((value) => setState(
-        () {
-          value!.forEach((uid, value) {
-            if(value['role'] != 'Manager'){
-              debugPrint(value.toString());
+  void _getEmployeeData() async {
+    var snapshot = await FirebaseFirestore.instance.collection('users').get();
+    var data = snapshot.docs;
 
-              employeeList.add(Employee(
-                  name: value['name'],
-                  lastName: value['lastName'],
-                  email: value["email"],
-                  role: value['role'],
-                  uid: uid,
-                  availability: value['availability'],
-                  phoneNumber: value['phoneNumber'],
-                  timeOff: value['timeOff'],
-                  timesheet: value['timesheet'],
-                  schedule: value['schedule']
-              ));
-            }
-          });
-          _setDataSource();
+    setState(() {
+      employeeList.clear();
+      data.forEach((doc) {
+        var value = doc.data();
+        if (value['role'] != 'Manager') {
+          debugPrint('Employee Data: $value');
+          employeeList.add(Employee(
+            name: value['name'],
+            lastName: value['lastName'],
+            email: value["email"],
+            role: value['role'],
+            uid: doc.id,
+            availability: value['availability'] ?? [], // Ensure availability is a list
+            phoneNumber: value['phoneNumber'] ?? '',
+            timeOff: value['timeOff'] ?? {},
+            timesheet: value['timesheet'] ?? {},
+            schedule: value['schedule'] ?? {}, // Ensure schedule is a map
+          ));
         }
-    ));
-  }
-  void _setDataSource(){
-    meetings = [];
-    for(Employee employee in employeeList){
-      employee.schedule.forEach((key, date) {
-        DateTime startTime = date['startTime'].toDate();
-        DateTime endTime = date['endTime'].toDate();
-
-        Meeting meeting = Meeting(
-          '${employee.name} ${employee.lastName}',
-        startTime, endTime,
-        Colors.green,
-        false,
-        );
-        meetings.add(meeting);
       });
-    }
+      _setDataSource();
+    });
   }
-  void _showUpdateAvailableTimeDialog(BuildContext context, Meeting meeting){
+
+  void _setDataSource() {
+    setState(() {
+      meetings.clear();
+      for (Employee employee in employeeList) {
+        employee.schedule.forEach((key, date) {
+          DateTime startTime = (date['startTime'] as Timestamp).toDate();
+          DateTime endTime = (date['endTime'] as Timestamp).toDate();
+
+          Meeting meeting = Meeting(
+            '${employee.name} ${employee.lastName}',
+            startTime,
+            endTime,
+            Colors.green,
+            false,
+          );
+          debugPrint('Meeting Added: ${meeting.eventName}, ${meeting.from}, ${meeting.to}');
+          meetings.add(meeting);
+        });
+      }
+    });
+  }
+
+  void _showUpdateAvailableTimeDialog(BuildContext context, Meeting meeting) {
     DateTime startTime = meeting.from;
     DateTime endTime = meeting.to;
-    showDialog(context: context, builder: (BuildContext context){
-      return AlertDialog(
-        title: const Text('Update Schedule Time'),
-        content: SingleChildScrollView(
-          child: Column(
-            children: [
-              DateTimeSelectorFormField(
-                labelText: 'Start Time',
-                initialDateTime: startTime,
-                onSelect: (date) {
-                    if(date!.isAfter(endTime)){
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Update Schedule Time'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                DateTimeSelectorFormField(
+                  labelText: 'Start Time',
+                  initialDateTime: startTime,
+                  onSelect: (date) {
+                    if (date!.isAfter(endTime)) {
                       endTime = date.add(const Duration(minutes: 1));
                     }
                     startTime = date;
 
-                    if(mounted) {
-                      setState(() {
-
-                      });
+                    if (mounted) {
+                      setState(() {});
                     }
-                },
-                type: DateTimeSelectionType.time,
-              ),
-              DateTimeSelectorFormField(
+                  },
+                  type: DateTimeSelectionType.time,
+                ),
+                DateTimeSelectorFormField(
                   labelText: 'End Time',
                   initialDateTime: endTime,
-                  onSelect: (date){
-                    if(date!.isBefore(startTime)) {
+                  onSelect: (date) {
+                    if (date!.isBefore(startTime)) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('End time is less than start time.')));
-                    }
-                    else{
+                          content: Text(
+                              'End time is less than start time.')));
+                    } else {
                       endTime = date;
                     }
                   },
                   type: DateTimeSelectionType.time,
-                  ),
-            ],
+                ),
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton( onPressed: () {
-            // Create the new item using the entered values
-            int index = meetings.indexOf(meeting);
-            Map schedule = employeeList[index].schedule;
-            String date = meeting.from.toLocal().toString().split(' ')[0];
-            meeting.from = startTime;
-            meeting.to = endTime;
-            Map event = {};
-            event['startTime'] = Timestamp.fromDate(startTime);
-            event['endTime'] = Timestamp.fromDate(endTime);
-            schedule[date] = event;
-            addEvents({'schedule': schedule}, employeeList[index].uid);
-            // Close the dialog
-            setState(() {});
-            Navigator.of(context).pop();
-          },
-            child: const Text('Update Availability'),
-          ),
-          TextButton(
-            onPressed: () {
-              // Close the dialog without adding an item
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          )
-        ],
-      );
-    });
+          actions: [
+            TextButton(
+              onPressed: () {
+                // Create the new item using the entered values
+                int index = meetings.indexOf(meeting);
+                Map schedule = employeeList[index].schedule;
+                String date = meeting.from.toLocal().toString().split(' ')[0];
+                meeting.from = startTime;
+                meeting.to = endTime;
+                Map event = {};
+                event['startTime'] = Timestamp.fromDate(startTime);
+                event['endTime'] = Timestamp.fromDate(endTime);
+                schedule[date] = event;
+                addEvents({'schedule': schedule}, employeeList[index].uid);
+                // Close the dialog
+                setState(() {
+                  _setDataSource();
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Update Availability'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Close the dialog without adding an item
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -160,10 +172,10 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
             shape: BoxShape.rectangle,
           ),
           onTap: (CalendarTapDetails details) {
-            if(details.targetElement == CalendarElement.calendarCell){
+            if (details.targetElement == CalendarElement.calendarCell) {
               DateTime tappedTime = details.date!;
               print(tappedTime);
-            } else if(details.targetElement == CalendarElement.appointment){
+            } else if (details.targetElement == CalendarElement.appointment) {
               DateTime tappedTime = details.date!;
               print(tappedTime);
 
@@ -171,28 +183,25 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
 
               _showUpdateAvailableTimeDialog(context, meeting);
               Future.delayed(const Duration(milliseconds: 100), () {
-                setState(() {
-
-                });
+                setState(() {});
               });
             }
           },
-        )
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(context,
-          CupertinoPageRoute(builder: (context) => AddScheduleForm()))
-              .then((value) {
-                _getEmployeeData();
-                Future.delayed(const Duration(milliseconds: 100), () {
-                  setState(() {
-
-                  });
-                });
+          Navigator.push(
+            context,
+            CupertinoPageRoute(builder: (context) => AddScheduleForm()),
+          ).then((value) {
+            _getEmployeeData();
+            Future.delayed(const Duration(milliseconds: 100), () {
+              setState(() {});
+            });
           });
         },
-        child: Icon(Icons.add_box_rounded)
+        child: Icon(Icons.add_box_rounded),
       ),
     );
   }

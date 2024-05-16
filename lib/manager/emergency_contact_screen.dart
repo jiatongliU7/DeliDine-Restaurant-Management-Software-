@@ -1,16 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:restaurantsoftware/employee/employee.dart';
-import 'package:restaurantsoftware/employee/profile.dart';
-import 'package:restaurantsoftware/employee/timesheet.dart';
-import 'package:restaurantsoftware/employee/availabilityScreen.dart';
 import 'package:restaurantsoftware/manager/employeeProfile.dart';
 
-import '../firebase/authentication.dart';
-import '../firebase/db.dart';
-import 'package:flutter/foundation.dart';
 class EmergencyContactPage extends StatefulWidget {
   const EmergencyContactPage({super.key});
 
@@ -19,7 +11,6 @@ class EmergencyContactPage extends StatefulWidget {
 }
 
 class _EmergencyContactPageState extends State<EmergencyContactPage> {
-  Map data = {};
   List<String> items = [];
   List<String> duplicateItems = [];
   List<Employee> duplicateEmployeeInfo = [];
@@ -44,51 +35,50 @@ class _EmergencyContactPageState extends State<EmergencyContactPage> {
     getEmployeeData();
   }
 
-  void getEmployeeData() {
-    getUsersInfo().then((value) => setState(() {
-      data = value!;
-      data.forEach((uid, value) {
-        if(value['role'] != 'Manager'){
-          debugPrint(value.toString());
-          duplicateItems.add(value['name'] + ' ' + value['lastName']);
-          duplicateEmployeeInfo.add(
-            Employee(
-                name: value['name'],
-                lastName: value['lastName'],
-                email: value['email'],
-                role: value['role'],
-                availability: value['Availability'],
-                phoneNumber: value['phoneNumber'],
-                timeOff: value['timeOff'],
-                timesheet: value['timesheet'],
-                schedule: value['schedule'],
-                uid: uid)
-          );
-        }
-      });
+  void getEmployeeData() async {
+    try {
+      var snapshot = await FirebaseFirestore.instance.collection('users').get();
+      var data = snapshot.docs;
+
       setState(() {
+        data.forEach((doc) {
+          var value = doc.data();
+          if (value['role'] != 'Manager') {
+            debugPrint(value.toString());
+            duplicateItems.add(value['name'] + ' ' + value['lastName']);
+            duplicateEmployeeInfo.add(Employee.fromMap(value, doc.id));
+          }
+        });
         items = duplicateItems;
         employeeInfo = duplicateEmployeeInfo;
         isLoading = false;
-        print(employeeInfo);
+        debugPrint('Employee Info Loaded: ${employeeInfo.length}');
       });
-    }));
+    } catch (e) {
+      debugPrint('Error fetching employee data: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   void filterSearchResults(String query) {
-  items = [];
-  setState(() {
-    for(int i = 0; i < duplicateItems.length; i++){
-      if(duplicateItems[i].toLowerCase().contains(query.toLowerCase())){
-        int indexWeekDay = weekDays.indexOf(selectedDay) - 1;
-        //change this to work with timestamps throughout the day not only the whole day
-        if(selectedDay == 'All' || duplicateEmployeeInfo[i].availability[indexWeekDay]['selectedDay']){
-          items.add(duplicateItems[i]);
-          employeeInfo.add(duplicateEmployeeInfo[i]);
+    setState(() {
+      items = [];
+      employeeInfo = [];
+      for (int i = 0; i < duplicateItems.length; i++) {
+        if (duplicateItems[i].toLowerCase().contains(query.toLowerCase())) {
+          int indexWeekDay = weekDays.indexOf(selectedDay) - 1;
+          // Change this to work with timestamps throughout the day not only the whole day
+          if (selectedDay == 'All' ||
+              duplicateEmployeeInfo[i]
+                  .availability[indexWeekDay]['selectedDay']) {
+            items.add(duplicateItems[i]);
+            employeeInfo.add(duplicateEmployeeInfo[i]);
+          }
         }
       }
-    }
-  });
+    });
   }
 
   @override
@@ -110,82 +100,84 @@ class _EmergencyContactPageState extends State<EmergencyContactPage> {
                   hintText: 'Search',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(25)),
-                  )
-                )
-              )
+                  ),
+                ),
+              ),
             ),
             Padding(
-                padding: const EdgeInsets.all(8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    Text('Filter by Day:'),
-                    SizedBox(width: 10,),
-                    DropdownButton<String>(
-                      value: selectedDay,
-                      onChanged: (String? newValue){
-                        setState(() {
-                          selectedDay = newValue!;
-                          filterSearchResults('');
-                        });
-                      },
-                      items: weekDays.map<DropdownMenuItem<String>>((String value){
-                        return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value)
-                        );
-                      }).toList(),
-                    )
-                  ],
-                )
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  Text('Filter by Day:'),
+                  SizedBox(width: 10),
+                  DropdownButton<String>(
+                    value: selectedDay,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedDay = newValue!;
+                        filterSearchResults('');
+                      });
+                    },
+                    items: weekDays
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
             ),
             Expanded(
-                child: isLoading ? const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(),
-                    ],
-                  ),
-                )
-                    : Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: items.isNotEmpty
-                    ?
-                        ListView.builder(shrinkWrap: true,
-                        physics: const ClampingScrollPhysics(),
-                        itemCount: items.length,
-                        itemBuilder: (context, index) {
-                          return Card(
-                            child: ListTile(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (BuildContext context) =>
-                                            EmployeeProfilePage(employee: employeeInfo[index])
-                                    )
-                                );
-                              },
-                              title: Text('${items[index]}',
-                                style:  const TextStyle(fontSize: 20),
-                              ),
-                              subtitle: Text(
-                                'Works as: ${employeeInfo[index].role}',
-                                style:  const TextStyle(fontSize: 18),
-                              ),
-                              trailing: Icon(Icons.arrow_forward_ios_sharp),
+              child: isLoading
+                  ? const Center(
+                child: CircularProgressIndicator(),
+              )
+                  : Padding(
+                padding: const EdgeInsets.all(8),
+                child: items.isNotEmpty
+                    ? ListView.builder(
+                  shrinkWrap: true,
+                  physics: const ClampingScrollPhysics(),
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      child: ListTile(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  EmployeeProfilePage(
+                                    employee: employeeInfo[index],
+                                  ),
                             ),
                           );
                         },
-                        )
-                        : Center(child: const Text('No Match'),)
+                        title: Text(
+                          '${items[index]}',
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                        subtitle: Text(
+                          'Works as: ${employeeInfo[index].role}',
+                          style: const TextStyle(fontSize: 18),
+                        ),
+                        trailing:
+                        Icon(Icons.arrow_forward_ios_sharp),
+                      ),
+                    );
+                  },
                 )
+                    : Center(
+                  child: const Text('No Match'),
+                ),
+              ),
             ),
-          ]
-        )
-      )
+          ],
+        ),
+      ),
     );
   }
 }
-

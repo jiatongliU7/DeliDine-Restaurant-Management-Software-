@@ -1,11 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:restaurantsoftware/employee/signupPage.dart';
+import 'package:restaurantsoftware/manager/emergency_contact_screen.dart';
+import 'package:restaurantsoftware/manager/signup_screen.dart';
 import 'package:restaurantsoftware/employee/weekly_schedule.dart';
 import '/firebase/authentication.dart';
-//import '/manager/emergencyContactScreen.dart';
-//import '/manager/weekly_schedule.dart';
-//import 'signup_screen.dart';
 
 class RouteManagerPage extends StatefulWidget {
   const RouteManagerPage({Key? key}) : super(key: key);
@@ -15,103 +13,71 @@ class RouteManagerPage extends StatefulWidget {
 }
 
 class _RouteManagerPageState extends State<RouteManagerPage> {
+  int _selectedIndex = 0;
+  final PageController _pageController = PageController();
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    _pageController.jumpToPage(index);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text('Manager Dashboard'),
         automaticallyImplyLeading: false,
         leading: Container(),
         actions: [
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () {
-              AuthenticationHelper()
-                  .signOut()
-                  .then((value) => Navigator.of(context).pop());
+              AuthenticationHelper().signOut().then((value) {
+                Navigator.of(context).pop();
+              });
             },
           ),
         ],
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 50.0),
-          child: Column(
-            children: <Widget>[
-              SizedBox(
-                height: 54,
-                width: width * 0.75,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const WeeklySchedulePage()));
-                  },
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF276B27),
-                      shape: const RoundedRectangleBorder(
-                          borderRadius:
-                          BorderRadius.all(Radius.circular(24.0)))),
-                  child: const Text(
-                    'Weekly Schedule',
-                    style: TextStyle(fontSize: 24, color: Colors.white),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20.0),
-                child: SizedBox(
-                  height: 54,
-                  width: width * 0.75,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Navigator.push(
-                      //     context,
-                      //     MaterialPageRoute(
-                      //         builder: (context) =>
-                      //         const EmergencyContactPage()));
-                    },
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF276B27),
-                        shape: const RoundedRectangleBorder(
-                            borderRadius:
-                            BorderRadius.all(Radius.circular(24.0)))),
-                    child: const Text(
-                      'Emergency Contact',
-                      style: TextStyle(fontSize: 24, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20.0),
-                child: SizedBox(
-                  height: 54,
-                  width: width * 0.75,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const Signup()));
-                    },
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF276B27),
-                        shape: const RoundedRectangleBorder(
-                            borderRadius:
-                            BorderRadius.all(Radius.circular(24.0)))),
-                    child: const Text(
-                      'Add User',
-                      style: TextStyle(fontSize: 24, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        children: [
+          WeeklySchedulePage(),
+          EmergencyContactPage(),
+          Signup(), // Add User Page
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today),
+            label: 'Weekly Schedule',
           ),
-        ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.contact_page),
+            label: 'Emergency Contact',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_add),
+            label: 'Add User',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.green,
+        onTap: _onItemTapped,
       ),
     );
   }

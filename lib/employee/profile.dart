@@ -1,10 +1,6 @@
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-//import 'package:restaurantsoftware/employee/availabilityScreen.dart';
-
-import '../firebase/db.dart';
-//import 'contact.dart';
+import 'package:restaurantsoftware/employee/availabilityScreen.dart';
+import 'package:restaurantsoftware/employee/contact.dart';
 import 'employee.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -28,73 +24,118 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         title: const Text('Profile'),
         automaticallyImplyLeading: false,
-        leading: Container(),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.only(top: 50.0),
+          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(widget.employee.name,
-                  style: const TextStyle(
-                      fontSize: 30, fontWeight: FontWeight.bold)),
-              Text(widget.employee.lastName,
-                  style: const TextStyle(
-                      fontSize: 30, fontWeight: FontWeight.bold)),
-              Text('Work as ${widget.employee.role}',
-                  style: const TextStyle(
-                      fontSize: 25, fontStyle: FontStyle.italic)),
-              Padding(
-                padding: const EdgeInsets.only(top: 20.0),
-                child: SizedBox(
-                  height: 54,
-                  width: width * 0.75,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Navigator.push(
-                      //     context,
-                      //     MaterialPageRoute(
-                      //         builder: (context) => AvailabilityPage(
-                      //           isEdited: true,
-                      //           employee: widget.employee,
-                      //         )));
-                    },
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF276B27),
-                        shape: const RoundedRectangleBorder(
-                            borderRadius:
-                            BorderRadius.all(Radius.circular(24.0)))),
-                    child: const Text(
-                      'Availability',
-                      style: TextStyle(fontSize: 24, color: Colors.white),
-                    ),
+              Center(
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.green,
+                  child: Text(
+                    '${widget.employee.name[0]}${widget.employee.lastName[0]}',
+                    style: TextStyle(fontSize: 40, color: Colors.white),
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20.0),
-                child: SizedBox(
-                  height: 54,
-                  width: width * 0.75,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Navigator.push(
-                      //     context,
-                      //     MaterialPageRoute(
-                      //         builder: (context) => ContactPage(
-                      //           employee: widget.employee,
-                      //         )));
-                    },
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF276B27),
-                        shape: const RoundedRectangleBorder(
-                            borderRadius:
-                            BorderRadius.all(Radius.circular(24.0)))),
-                    child: const Text(
-                      'Contact',
-                      style: TextStyle(fontSize: 24, color: Colors.white),
+              SizedBox(height: 20),
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      '${widget.employee.name} ${widget.employee.lastName}',
+                      style: const TextStyle(
+                          fontSize: 30, fontWeight: FontWeight.bold),
                     ),
-                  ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Works as ${widget.employee.role}',
+                      style: const TextStyle(
+                          fontSize: 25, fontStyle: FontStyle.italic),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 30),
+              Divider(),
+              Text(
+                'Contact Information',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              ListTile(
+                leading: Icon(Icons.email),
+                title: Text(widget.employee.email),
+              ),
+              ListTile(
+                leading: Icon(Icons.phone),
+                title: Text(widget.employee.phoneNumber.isNotEmpty
+                    ? widget.employee.phoneNumber
+                    : 'Not Provided'),
+              ),
+              SizedBox(height: 30),
+              Divider(),
+              Center(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 54,
+                      width: width * 0.75,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => AvailabilityPage(
+                                    isEdited: true,
+                                    employee: widget.employee,
+                                  )));
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF276B27),
+                            shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(24.0)))),
+                        child: const Text(
+                          'Availability',
+                          style: TextStyle(fontSize: 24, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    SizedBox(
+                      height: 54,
+                      width: width * 0.75,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ContactPage(
+                                    employee: widget.employee,
+                                  )));
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF276B27),
+                            shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(24.0)))),
+                        child: const Text(
+                          'Contact',
+                          style: TextStyle(fontSize: 24, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
