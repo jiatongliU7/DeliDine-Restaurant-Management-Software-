@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:restaurantsoftware/firebase/db.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'employee.dart';
 
 class ClockInOutPage extends StatefulWidget {
@@ -14,13 +13,30 @@ class ClockInOutPage extends StatefulWidget {
 
 class _ClockInOutPageState extends State<ClockInOutPage> {
   void clockIn() {
-    widget.employee.clockIn();
+    DateTime now = DateTime.now();
+    widget.employee.currentClockIn = now;
+    widget.employee.timesheet[now.toIso8601String()] = Timestamp.fromDate(now);
     setState(() {});
+    _updateTimesheet();
   }
 
   void clockOut() {
-    widget.employee.clockOut();
-    setState(() {});
+    DateTime now = DateTime.now();
+    if (widget.employee.currentClockIn != null) {
+      widget.employee.timesheet[widget.employee.currentClockIn!.toIso8601String()] = Timestamp.fromDate(now);
+      widget.employee.currentClockOut = now;
+      setState(() {});
+      _updateTimesheet();
+    }
+  }
+
+  void _updateTimesheet() async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.employee.uid)
+        .update({
+      'timesheet': widget.employee.timesheet,
+    });
   }
 
   @override
@@ -40,8 +56,7 @@ class _ClockInOutPageState extends State<ClockInOutPage> {
             SizedBox(height: 10),
             Text(
               widget.employee.currentClockIn != null
-                  ? DateFormat('hh:mm:ss a')
-                  .format(widget.employee.currentClockIn!)
+                  ? DateFormat('hh:mm:ss a').format(widget.employee.currentClockIn!)
                   : 'Not clocked in',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
@@ -53,8 +68,7 @@ class _ClockInOutPageState extends State<ClockInOutPage> {
             SizedBox(height: 10),
             Text(
               widget.employee.currentClockOut != null
-                  ? DateFormat('hh:mm:ss a').format(
-                  widget.employee.timesheet.entries.last.value.toDate())
+                  ? DateFormat('hh:mm:ss a').format(widget.employee.currentClockOut!)
                   : 'Not clocked out',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
@@ -90,8 +104,6 @@ class _ClockInOutPageState extends State<ClockInOutPage> {
                   );
                 } else {
                   clockOut();
-                  Map timesheet = widget.employee.timesheet;
-                  addEvents({'timesheet': timesheet}, widget.employee.uid);
                 }
               },
               child: Text('Clock Out'),

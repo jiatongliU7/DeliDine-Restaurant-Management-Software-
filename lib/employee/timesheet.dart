@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'employee.dart'; // Import your Employee class
 
 class TimesheetPage extends StatelessWidget {
@@ -21,37 +21,51 @@ class TimesheetPage extends StatelessWidget {
   Widget _buildTimesheetEntries() {
     List<MapEntry<String, DateTime>> sortedEntries = [];
     List<Widget> entries = [];
-    // Iterate through the timesheet entries and create a list of key-value pairs
-    // where the key is the formatted date and the value is the clock-in time
 
     if (employee.timesheet.isEmpty) {
       return Center(
-          child: Text(
-            'No timesheet available',
-            style: TextStyle(fontSize: 30),
-          ));
+        child: Text(
+          'No timesheet available',
+          style: TextStyle(fontSize: 30),
+        ),
+      );
     }
+
     employee.timesheet.forEach((key, value) {
       final clockInTime = DateTime.parse(key);
       final formattedDate = DateFormat('MM/dd/yyyy').format(clockInTime);
-
       sortedEntries.add(MapEntry(formattedDate, clockInTime));
     });
 
-    // Sort the list of entries based on the date
     sortedEntries.sort((a, b) => b.value.compareTo(a.value));
     print(sortedEntries);
 
     for (var entry in sortedEntries) {
       final formattedClockInTime = DateFormat('hh:mm:ss a').format(entry.value);
-      final formattedClockOutTime = DateFormat('hh:mm:ss a')
-          .format(employee.timesheet[entry.value.toIso8601String()].toDate());
-      entries.add(Card(
-        child: ListTile(
+      final timestamp = employee.timesheet[entry.value.toIso8601String()];
+      if (timestamp is Timestamp) {
+        final clockOutTime = timestamp.toDate();
+        final formattedClockOutTime = DateFormat('hh:mm:ss a').format(clockOutTime);
+
+        entries.add(Card(
+          child: ListTile(
             title: Text(entry.key),
             subtitle: Text(
-                ' Clock In: $formattedClockInTime\n Clock Out: $formattedClockOutTime\n ')),
-      ));
+              ' Clock In: $formattedClockInTime\n Clock Out: $formattedClockOutTime\n ',
+            ),
+          ),
+        ));
+      } else {
+        // Handle the case where timestamp is not of type Timestamp
+        entries.add(Card(
+          child: ListTile(
+            title: Text(entry.key),
+            subtitle: Text(
+              ' Clock In: $formattedClockInTime\n Clock Out: Invalid Timestamp\n ',
+            ),
+          ),
+        ));
+      }
     }
 
     return ListView(children: entries);
