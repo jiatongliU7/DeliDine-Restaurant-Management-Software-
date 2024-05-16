@@ -6,6 +6,7 @@ import 'package:restaurantsoftware/employee/profile.dart';
 import 'package:restaurantsoftware/employee/timesheet.dart';
 import 'package:restaurantsoftware/firebase/authentication.dart';
 import 'package:restaurantsoftware/firebase/db.dart';
+import 'package:restaurantsoftware/loginPage.dart';
 
 class RouteEmployeePage extends StatefulWidget {
   const RouteEmployeePage({Key? key}) : super(key: key);
@@ -74,12 +75,19 @@ class _RouteEmployeePageState extends State<RouteEmployeePage> {
             onPressed: () {
               AuthenticationHelper()
                   .signOut()
-                  .then((value) => Navigator.of(context).pop());
+                  .then((value) => Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => LoginPage()), // Replace with your login screen
+                    (route) => false,
+              ));
             },
           ),
         ],
       ),
-      body: _buildBody()[_selectedIndex],
+      body: employee == null
+          ? Center(child: CircularProgressIndicator())
+          : _buildBody()[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -87,7 +95,7 @@ class _RouteEmployeePageState extends State<RouteEmployeePage> {
             label: 'Clock In/Out',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.schedule),
+            icon: Icon(Icons.calendar_today_outlined),
             label: 'Timesheet',
           ),
           BottomNavigationBarItem(
@@ -101,6 +109,7 @@ class _RouteEmployeePageState extends State<RouteEmployeePage> {
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: const Color(0xFF276B27),
+        unselectedItemColor: Colors.grey, // Set the unselected item color
         onTap: _onItemTapped,
       ),
     );

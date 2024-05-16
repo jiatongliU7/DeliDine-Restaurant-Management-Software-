@@ -1,9 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:restaurantsoftware/loginPage.dart';
 import 'package:restaurantsoftware/manager/emergency_contact_screen.dart';
 import 'package:restaurantsoftware/manager/signup_screen.dart';
 import 'package:restaurantsoftware/employee/weekly_schedule.dart';
-import '/firebase/authentication.dart';
+import 'package:restaurantsoftware/firebase/authentication.dart';
 
 class RouteManagerPage extends StatefulWidget {
   const RouteManagerPage({Key? key}) : super(key: key);
@@ -14,19 +14,19 @@ class RouteManagerPage extends StatefulWidget {
 
 class _RouteManagerPageState extends State<RouteManagerPage> {
   int _selectedIndex = 0;
-  final PageController _pageController = PageController();
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
-    _pageController.jumpToPage(index);
   }
 
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+  List<Widget> _buildBody() {
+    return [
+      WeeklySchedulePage(),
+      EmergencyContactPage(),
+      Signup(), // Add User Page
+    ];
   }
 
   @override
@@ -41,25 +41,17 @@ class _RouteManagerPageState extends State<RouteManagerPage> {
             icon: const Icon(Icons.exit_to_app),
             onPressed: () {
               AuthenticationHelper().signOut().then((value) {
-                Navigator.of(context).pop();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginPage()), // Replace with your login screen
+                      (route) => false,
+                );
               });
             },
           ),
         ],
       ),
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        children: [
-          WeeklySchedulePage(),
-          EmergencyContactPage(),
-          Signup(), // Add User Page
-        ],
-      ),
+      body: _buildBody()[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -77,6 +69,7 @@ class _RouteManagerPageState extends State<RouteManagerPage> {
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.green,
+        unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
       ),
     );

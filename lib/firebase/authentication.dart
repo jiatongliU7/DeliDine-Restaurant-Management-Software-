@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:restaurantsoftware/employee/employee.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthenticationHelper {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -47,6 +47,7 @@ class AuthenticationHelper {
   Future signIn({required String email, required String password}) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
+      await _saveLoginState();
       return null;
     } on FirebaseAuthException catch (e) {
       return e.message;
@@ -56,6 +57,25 @@ class AuthenticationHelper {
   // SIGN OUT METHOD
   Future signOut() async {
     await _auth.signOut();
+    await _clearLoginState();
+  }
+
+  // Save login state
+  Future<void> _saveLoginState() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', true);
+  }
+
+  // Clear login state
+  Future<void> _clearLoginState() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('isLoggedIn');
+  }
+
+  // Check login state
+  static Future<bool> isLoggedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('isLoggedIn') ?? false;
   }
 
   // Get User Role
