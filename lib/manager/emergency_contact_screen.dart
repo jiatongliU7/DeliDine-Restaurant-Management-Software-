@@ -68,11 +68,14 @@ class _EmergencyContactPageState extends State<EmergencyContactPage> {
       employeeInfo = [];
       for (int i = 0; i < duplicateItems.length; i++) {
         if (duplicateItems[i].toLowerCase().contains(query.toLowerCase())) {
-          int indexWeekDay = weekDays.indexOf(selectedDay) - 1;
-          // Change this to work with timestamps throughout the day not only the whole day
-          if (selectedDay == 'All' ||
-              duplicateEmployeeInfo[i]
-                  .availability[indexWeekDay]['selectedDay']) {
+          bool isScheduled = true;
+          if (selectedDay != 'All') {
+            int indexWeekDay = weekDays.indexOf(selectedDay) - 1;
+            if (!duplicateEmployeeInfo[i].schedule.containsKey(indexWeekDay)) {
+              isScheduled = false;
+            }
+          }
+          if (isScheduled) {
             items.add(duplicateItems[i]);
             employeeInfo.add(duplicateEmployeeInfo[i]);
           }
@@ -160,12 +163,24 @@ class _EmergencyContactPageState extends State<EmergencyContactPage> {
                           '${items[index]}',
                           style: const TextStyle(fontSize: 20),
                         ),
-                        subtitle: Text(
-                          'Works as: ${employeeInfo[index].role}',
-                          style: const TextStyle(fontSize: 18),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Works as: ${employeeInfo[index].role}',
+                              style: const TextStyle(fontSize: 18),
+                            ),
+                            Text(
+                              'Email: ${employeeInfo[index].email}',
+                              style: const TextStyle(fontSize: 18),
+                            ),
+                            Text(
+                              'Phone: ${employeeInfo[index].phoneNumber}',
+                              style: const TextStyle(fontSize: 18),
+                            ),
+                          ],
                         ),
-                        trailing:
-                        Icon(Icons.arrow_forward_ios_sharp),
+                        trailing: Icon(Icons.arrow_forward_ios_sharp),
                       ),
                     );
                   },

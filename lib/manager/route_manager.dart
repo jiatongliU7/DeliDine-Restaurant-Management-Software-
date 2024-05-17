@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:restaurantsoftware/loginPage.dart';
 import 'package:restaurantsoftware/manager/emergency_contact_screen.dart';
 import 'package:restaurantsoftware/manager/signup_screen.dart';
-import 'package:restaurantsoftware/employee/weekly_schedule.dart';
+import 'package:restaurantsoftware/manager/weekly_schedule.dart';
 import 'package:restaurantsoftware/firebase/authentication.dart';
 
 class RouteManagerPage extends StatefulWidget {

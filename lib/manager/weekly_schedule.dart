@@ -60,20 +60,24 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
         employee.schedule.forEach((key, date) {
           DateTime startTime = (date['startTime'] as Timestamp).toDate();
           DateTime endTime = (date['endTime'] as Timestamp).toDate();
+          Color color = date['color'] != null
+              ? Color(date['color'])
+              : Colors.green; // Default color if none is provided
 
           Meeting meeting = Meeting(
             '${employee.name} ${employee.lastName}',
             startTime,
             endTime,
-            Colors.green,
+            color,
             false,
           );
-          debugPrint('Meeting Added: ${meeting.eventName}, ${meeting.from}, ${meeting.to}');
+          debugPrint('Meeting Added: ${meeting.eventName}, ${meeting.from}, ${meeting.to}, ${meeting.background}');
           meetings.add(meeting);
         });
       }
     });
   }
+
 
   void _showUpdateAvailableTimeDialog(BuildContext context, Meeting meeting) {
     DateTime startTime = meeting.from;

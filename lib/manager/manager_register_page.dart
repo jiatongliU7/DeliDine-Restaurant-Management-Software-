@@ -101,6 +101,7 @@ class _RegisterManagerPageState extends State<RegisterManagerPage> {
                 },
                 keyboardType: TextInputType.phone,
               ),
+              SizedBox(height: 20,),
               TextFormField(
                 controller: passwordController,
                 obscureText: _obscureText,

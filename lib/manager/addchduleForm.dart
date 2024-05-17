@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../date_time_selector.dart';
 import '../employee/employee.dart';
 import '../firebase/db.dart';
-import '../meeting.dart';
 
 class AddScheduleForm extends StatefulWidget {
   AddScheduleForm({
@@ -315,7 +314,9 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
       String date = _date.toLocal().toString().split(' ')[0];
       event['startTime'] = Timestamp.fromDate(_startTime!);
       event['endTime'] = Timestamp.fromDate(_endTime!);
+      event['color'] = _color.value; // Save the color as an integer value
       schedule[date] = event;
+
       employee.schedule = schedule;
 
       try {

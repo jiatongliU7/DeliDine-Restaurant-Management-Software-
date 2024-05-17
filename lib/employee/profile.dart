@@ -21,16 +21,6 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
@@ -87,31 +77,7 @@ class _ProfilePageState extends State<ProfilePage> {
               Center(
                 child: Column(
                   children: [
-                    SizedBox(
-                      height: 54,
-                      width: width * 0.75,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => AvailabilityPage(
-                                    isEdited: true,
-                                    employee: widget.employee,
-                                  )));
-                        },
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF276B27),
-                            shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                    Radius.circular(24.0)))),
-                        child: const Text(
-                          'Availability',
-                          style: TextStyle(fontSize: 24, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
+
                     SizedBox(
                       height: 54,
                       width: width * 0.75,
