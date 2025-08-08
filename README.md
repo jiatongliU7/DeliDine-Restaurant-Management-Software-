@@ -8,7 +8,7 @@
 
 ---
 
-## 📖 Overview
+## Overview
 DeliDineSoft is a **restaurant management application** designed for both managers and employees to improve efficiency, communication, and scheduling in the workplace.  
 The app focuses on **ease of use**, **real-time updates**, and **secure authentication**, ensuring smooth day-to-day operations for restaurants.
 
@@ -63,23 +63,8 @@ The iOS version was **published** and tested with real employee users, achieving
 
 ---
 
-## 🚀 Getting Started
-
-### Prerequisites
-- [Flutter SDK](https://flutter.dev/docs/get-started/install)
-- [Firebase Project](https://firebase.google.com/docs/flutter/setup)
-
+## Getting Started
 ### Installation
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/DeliDineSoft.git
-
-# Navigate into the project directory
-cd DeliDineSoft
-
-# Get dependencies
-flutter pub get
-
-# Run the app
-flutter run
-
+Check out the DeliDineSoft app on the Apple App Store. 
+```
